@@ -1,6 +1,9 @@
 #!usr/bin/env python
 #-*- coding:utf-8 -*-
-#__author__ = 'James Zhang'
+"""
+@author: James Zhang
+@date: 2017-03-05
+"""
 
 import numpy as np
 import theano
