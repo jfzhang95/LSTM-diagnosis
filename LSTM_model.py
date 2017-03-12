@@ -59,7 +59,8 @@ class LSTM_Diagnosis:
         params = get_params(self.layers)
         caches = make_caches(params)
 
-
+	# def my loss function
+	
         mean_loss = -T.mean(Y * T.log(Y_hat) + (1 - Y) * T.log(1 - Y_hat))
         last_step_loss = -T.mean(Y[-1] * T.log(Y_hat[-1]) + (1 - Y[-1]) * T.log(1 - Y_hat[-1]))
         loss = alpha * mean_loss + (1 - alpha) * last_step_loss
