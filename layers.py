@@ -1,15 +1,14 @@
 #!usr/bin/env python
 #-*- coding:utf-8 -*-
-#__author__ = 'James Zhang'
-
+"""
+@author: James Zhang
+@data: 2017-03-05
+"""
 
 import numpy as np
 import theano
 import theano.tensor as T
 from methods import sigmoid, dropout, floatX, random_weights, zeros
-
-
-
 
 class NNLayer:
 
