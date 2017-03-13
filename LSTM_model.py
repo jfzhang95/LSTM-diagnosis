@@ -62,11 +62,13 @@ class LSTM_Diagnosis:
         params = get_params(self.layers)
         caches = make_caches(params)
 
-
+	# calculate loss
         mean_loss = -T.mean(Y * T.log(Y_hat) + (1 - Y) * T.log(1 - Y_hat))
         last_step_loss = -T.mean(Y[-1] * T.log(Y_hat[-1]) + (1 - Y[-1]) * T.log(1 - Y_hat[-1]))
         loss = alpha * mean_loss + (1 - alpha) * last_step_loss
+	
         updates, grads = SGD(loss, params, lr, reg)
+	
         self.train_func = theano.function([X, Y, lr, reg, dropout_prob, alpha], loss, updates=updates, allow_input_downcast=True)
 
         self.predict_func = theano.function([X, dropout_prob], [Y_hat[-1]], allow_input_downcast=True)
