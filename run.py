@@ -25,7 +25,7 @@ def run(X, Y, X_test=None, iters=10000, lr=1e-1, alpha=0.0, reg=0.0, dropout_pro
     print "reg:", reg
     print "dropout:", dropout_prob
     print "iterations:", iters
-    rnn = LSTM_Diagnosis(num_input=6, num_hidden=[128, 128], num_output=500) 
+    rnn = LSTM_Diagnosis(num_input=13, num_hidden=[128, 128], num_output=9) 
 
     for iter in xrange(iters):
         total_loss = 0.0
