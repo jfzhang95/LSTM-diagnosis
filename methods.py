@@ -16,7 +16,7 @@ def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
 
 def random_weights(shape, name=None):
-    return theano.shared(floatX(np.random.uniform(size=shape, low=0.01, high=0.01)), name=name)
+    return theano.shared(floatX(np.random.uniform(size=shape, low=0.001, high=0.001)), name=name)
 
 def zeros(shape, name=""):
     return theano.shared(floatX(np.zeros(shape)), name=name)
@@ -50,7 +50,8 @@ def SGD(loss, params, lr, reg=0.0):
 def momentum(loss, params, caches, lr=1e-1, rho=0.1, clip_at=5.0, scale_norm=0.0, reg=0.0):
     updates = OrderedDict()
     grads = T.grad(loss=loss, wrt=params)
-
+    
+    caches = list(caches)
     for p, c, g in zip(params, caches, grads):
         if clip_at > 0.0:
             grad = clip(g, clip_at) 
