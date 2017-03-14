@@ -39,14 +39,6 @@ def scale(X, max_norm):
     return ifelse(T.lt(curr_norm, max_norm), X, max_norm * (X / curr_norm))
 
 
-def SGD(loss, params, lr, reg=0.0):
-    updates = OrderedDict()
-    grads = T.grad(cost=loss, wrt=params)
-
-    for p, g in zip(params, grads):
-        updates[p] = p - lr * (g + reg * p)
-    return updates, grads
-
 def momentum(loss, params, caches, lr=1e-1, rho=0.1, clip_at=5.0, scale_norm=0.0, reg=0.0):
     updates = OrderedDict()
     grads = T.grad(loss=loss, wrt=params)
