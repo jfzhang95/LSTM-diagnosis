@@ -9,7 +9,7 @@
 import theano
 import theano.tensor as T
 from layers import InputLayer, LSTMLayer, DropoutLayer, FullyConnectedLayer
-from methods import make_caches, get_params, SGD, momentum, floatX
+from methods import make_caches, get_params, momentum, floatX
 
 
 
@@ -52,7 +52,7 @@ class LSTM_Diagnosis:
         params = get_params(self.layers)
         caches = make_caches(params)
 	
-        updates, grads = SGD(loss, params, lr, reg)
+        updates, grads = momentum(loss, params, lr, reg)
 	
         self.train_func = theano.function([X, Y, lr, reg, dropout_prob, alpha], loss, updates=updates, allow_input_downcast=True)
 
