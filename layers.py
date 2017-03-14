@@ -116,7 +116,7 @@ class LSTMLayer(NNLayer):
         ([outputs, states], updates) = theano.scan(
             fn=self.one_step,  
             sequences=self.X,
-            n_steps=T,
+            n_steps=9,
             outputs_info = outputs_info,
             go_backwards=self.go_backwards
         )
