@@ -15,6 +15,9 @@ from methods import sigmoid, dropout, floatX, random_weights, zeros
 
 
 class NNLayer:
+    
+    def __init__(self, params):
+        self.params = params
 
     def get_params_names(self):
         return 
@@ -113,7 +116,7 @@ class LSTMLayer(NNLayer):
         ([outputs, states], updates) = theano.scan(
             fn=self.one_step,  
             sequences=self.X,
-            n_steps=25,   	# n_steps = T --- sequences length
+            n_steps=T,
             outputs_info = outputs_info,
             go_backwards=self.go_backwards
         )
