@@ -42,16 +42,6 @@ class LSTM_Diagnosis:
             prev_layer = DropoutLayer(prev_layer, dropout_prob=dropout_prob)
             self.layers.append(prev_layer)
 
-        else:
-            for i, num_curr in enumerate(num_hidden):
-                lstm = LSTMLayer(num_prev, num_curr, input_layers=[prev_layer], name="lstm{0}".format(i + 1), go_backwards=False)
-                num_prev = num_curr
-                prev_layer = lstm
-                self.layers.append(prev_layer)
-                prev_layer = DropoutLayer(prev_layer, dropout_prob=dropout_prob)
-                self.layers.append(prev_layer)
-
-
         FC = FullyConnectedLayer(num_prev, num_output, input_layers=[prev_layer], name="yhat")
         self.layers.append(FC)
         Y_hat = FC.output()
@@ -61,11 +51,6 @@ class LSTM_Diagnosis:
 
         params = get_params(self.layers)
         caches = make_caches(params)
-
-	# calculate loss
-        mean_loss = -T.mean(Y * T.log(Y_hat) + (1 - Y) * T.log(1 - Y_hat))
-        last_step_loss = -T.mean(Y[-1] * T.log(Y_hat[-1]) + (1 - Y[-1]) * T.log(1 - Y_hat[-1]))
-        loss = alpha * mean_loss + (1 - alpha) * last_step_loss
 	
         updates, grads = SGD(loss, params, lr, reg)
 	
