@@ -56,15 +56,10 @@ class LSTM_Diagnosis:
 	
         self.train_func = theano.function([X, Y, lr, reg, dropout_prob, alpha], loss, updates=updates, allow_input_downcast=True)
 
-        self.predict_func = theano.function([X, dropout_prob], [Y_hat[-1]], allow_input_downcast=True)
-
         self.predict_sequence_func = theano.function([X, dropout_prob], [Y_hat], allow_input_downcast=True)
 
     def train(self, X, Y, lr, alpha, reg, dropout_prob):
         return self.train_func(X, Y, lr, alpha, reg, dropout_prob)
-
-    def predict(self, X):
-        return self.predict_func(X, 0.0)  # in predict process dropout = 0
 
     def predict_sequence(self, X):
         return self.predict_sequence_func(X, 0.0)
