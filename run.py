@@ -38,13 +38,4 @@ def run(X, Y, X_test=None, iters=10000, lr=1e-1, alpha=0.0, reg=0.0, dropout_pro
     print "Y_test:", Y_test
 
 
-shape1 = (50, 25, 13)
-X = np.random.randn(*shape1)
-shape2 = (50, 9)
-Y = np.random.randint(size=shape2, low=0, high=2)
-shape3 = (21, 13)
-X_test = np.random.randn(*shape3)
-
-
-run(X, Y, X_test)
 
