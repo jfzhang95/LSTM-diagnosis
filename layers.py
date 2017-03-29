@@ -128,6 +128,75 @@ class LSTMLayer(NNLayer):
         self.h0 = theano.shared(floatX(np.zeros(self.num_hidden)))
         self.s0 = theano.shared(floatX(np.zeros(self.num_hidden)))
 
+        
+        
+class GRULayer(NNLayer):
+    def __init__(self, num_input, num_cells, input_layers=None, name="", go_backwards=False):
+        """
+        GRU Layer
+        Takes as input sequence of inputs, returns sequence of outputs
+        """
+
+        self.name = name
+        self.num_input = num_input
+        self.num_cells = num_cells
+
+        if len(input_layers) >= 2:
+            self.X = T.concatenate([input_layer.output() for input_layer in input_layers], axis=1)
+        else:
+            self.X = input_layers[0].output()
+
+        self.s0 = zeros(num_cells)
+        self.go_backwards = go_backwards
+
+        self.U_z = random_weights((num_input, num_cells), name=self.name + "U_z")
+        self.W_z = random_weights((num_cells, num_cells), name=self.name + "W_z")
+        self.U_r = random_weights((num_input, num_cells), name=self.name + "U_r")
+        self.W_r = random_weights((num_cells, num_cells), name=self.name + "W_r")
+        self.U_h = random_weights((num_input, num_cells), name=self.name + "U_h")
+        self.W_h = random_weights((num_cells, num_cells), name=self.name + "W_h")
+        self.b_z = zeros(num_cells, name=self.name + "b_z")
+        self.b_r = zeros(num_cells, name=self.name + "b_r")
+        self.b_h = zeros(num_cells, name=self.name + "b_h")
+
+        self.params = [self.U_z, self.W_z, self.U_r,
+                       self.W_r, self.U_h, self.W_h,
+                       self.b_z, self.b_r, self.b_h
+                       ]
+
+        self.output()
+
+    def get_params(self):
+        return self.params
+
+
+    def one_step(self, x, s_tm1):
+        """
+        """
+        z = T.nnet.sigmoid(T.dot(x, self.U_z) + T.dot(s_tm1, self.W_z) + self.b_z)
+        r = T.nnet.sigmoid(T.dot(x, self.U_r) + T.dot(s_tm1, self.W_r) + self.b_r)
+        h = T.tanh(T.dot(x, self.U_h) + T.dot(s_tm1 * r, self.W_h) + self.b_h)
+        s = (1 - z) * s_tm1 + z * h
+
+        return [s]
+
+    def output(self, train=True):
+
+        outputs_info = [self.s0]
+
+        (outputs, updates) = theano.scan(
+            fn=self.one_step,
+            sequences=self.X,
+            outputs_info=outputs_info,
+            go_backwards=self.go_backwards
+        )
+
+        return outputs
+
+    def reset_state(self):
+        self.s0 = zeros(self.num_cells)
+        
+
 class FullyConnectedLayer(NNLayer):
     """
     """
@@ -208,5 +277,53 @@ class DropoutLayer(NNLayer):
         return dropout(self.X, self.dropout_prob)
 
 
+class BN(object):
 
+    def __init__(self, input_size, time_steps, momentum=0.1, epsilon=1e-6):
+        self.gamma = theano.shared(np.ones(input_size, dtype=np.float32))
+        self.beta = theano.shared(np.zeros(input_size, dtype=np.float32))
+        self.params = [self.gamma, self.beta]
+
+        self.epsilon = epsilon
+        self.momentum = momentum
+        self.shared_state = False
+        self.train = True
+        if not hasattr(BN, 'self.running_mean'):
+            self.running_mean = theano.shared(np.zeros((time_steps, input_size), theano.config.floatX))
+
+        if hasattr(BN, 'self.params'):
+           print 'you'
+
+        if not hasattr(BN, 'self.running_std'):
+            self.running_std = theano.shared(np.zeros((time_steps, input_size), theano.config.floatX))
+
+    def __call__(self, x):
+        # batch statistics
+        m = x.mean(axis=0)
+        std = T.mean((x - m) ** 2 + self.epsilon, axis=0) ** 0.5
+
+        # update shared running averages
+        mean_update = self.momentum * self.running_mean + (1-self.momentum) * m
+        std_update = self.momentum * self.running_std + (1-self.momentum) * std
+        self.updates = [(self.running_mean, mean_update), (self.running_std, std_update)]
+
+        # normalize using running averages
+        # (is this better than batch statistics?)
+        # (this version seems like it is using the running average
+        #  of the previous batch since updates happens after)
+        if self.train:
+            x = (x - m) / (std + self.epsilon)
+        else:
+            x = (x - mean_update) / (std_update + self.epsilon)
+
+        # scale and shift
+        return self.gamma * x + self.beta
+
+    def set_state(self, input_size, time_steps):
+        self.running_mean = theano.shared(np.zeros((time_steps, input_size), theano.config.floatX))
+        self.running_std = theano.shared(np.zeros((time_steps, input_size), theano.config.floatX))
+        self.shared_state = True
+
+        
+ 
 
