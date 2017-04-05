@@ -53,3 +53,26 @@ def sgd_momentum(loss, params, learning_rate=1e-1, clip_at=5.0, scale_norm=0.0):
         updates[p] = p + v
 
     return updates, grads
+
+
+def rmsprop(loss, params, learning_rate=1e-2, clip_at=5.0, scale_norm=0.0):
+    updates = OrderedDict()
+    grads = T.grad(cost=loss, wrt=params)
+
+    epsilon = 1e-8
+    decay_rate = 0.90
+
+    for p, g in zip(params, grads):
+        c = theano.shared(np.zeros_like(p.get_value(borrow=True)))
+        if clip_at > 0.0:
+            grad = clip(g, clip_at)
+        else:
+            grad = g
+
+        if scale_norm > 0.0:
+            grad = scale(grad, scale_norm)
+
+        c = decay_rate * c + (1 - decay_rate) * grad ** 2
+        updates[p] = p - learning_rate * grad / (T.sqrt(c) + epsilon)
+
+    return updates, grads
