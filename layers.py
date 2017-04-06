@@ -327,3 +327,48 @@ class BN(object):
         
  
 
+class BN_LSTM(test_LSTM):
+    def __init__(self, num_input, num_hidden, input_layers=None, name="", go_backwards=False,
+                 activation=T.tanh, inner_activation=T.nnet.sigmoid):
+        super(BN_LSTM, self).__init__(num_input, num_hidden, input_layers, name, go_backwards, activation, inner_activation)
+
+        # remove biases
+        print len(self.params)
+        self.params.pop(8)
+        self.params.pop(8)
+        self.params.pop(8)
+        self.params.pop(8)
+
+        # add batch norm layers
+        self.norm_xi = BN(num_hidden, time_steps=100)
+        self.norm_xf = BN(num_hidden, time_steps=100)
+        self.norm_xc = BN(num_hidden, time_steps=100)
+        self.norm_xo = BN(num_hidden, time_steps=100)
+
+        self.params.extend(self.norm_xi.params + self.norm_xf.params +
+                           self.norm_xc.params + self.norm_xo.params)
+
+
+    def _input_to_hidden(self, x):
+        # apply batch norm
+        xi = self.norm_xi(T.dot(x, self.W_ix))
+        xf = self.norm_xf(T.dot(x, self.W_fx))
+        xc = self.norm_xc(T.dot(x, self.W_cx))
+        xo = self.norm_xo(T.dot(x, self.W_ox))
+
+        # setting running updates
+        self.updates.extend(self.norm_xi.updates + self.norm_xf.updates +
+                            self.norm_xc.updates + self.norm_xo.updates)
+
+        # (time_steps, batch_size, layer_size)
+        return xi, xf, xc, xo
+
+    def set_state(self, batch_size, time_steps=None):
+        super(BN_LSTM, self).set_state(batch_size)
+
+        # set batch norm state
+        if time_steps is not None:
+            self.norm_xi.set_state(self.num_hidden, time_steps)
+            self.norm_xf.set_state(self.num_hidden, time_steps)
+            self.norm_xc.set_state(self.num_hidden, time_steps)
+            self.norm_xo.set_state(self.num_hidden, time_steps)
